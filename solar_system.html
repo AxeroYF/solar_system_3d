@@ -145,6 +145,15 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             position: relative;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #planet-photo-display {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: none;
         }
         #planet-info-panel p {
             line-height: 1.5;
@@ -303,7 +312,9 @@
     <div id="planet-info-panel">
         <div class="close-btn" id="panel-close-btn">×</div>
         <h2 id="panel-name">Planet Name</h2>
-        <div id="planet-preview-container"></div>
+        <div id="planet-preview-container">
+            <img id="planet-photo-display" src="" alt="Planet Photo">
+        </div>
         <p id="panel-desc">Planet description goes here...</p>
         <div id="panel-stats"></div>
         <div class="nav-buttons">
@@ -320,6 +331,7 @@
     <div id="controls-ui">
         <div id="track-switches" style="margin-bottom: 10px;">
             <label><input type="checkbox" id="toggle-planet-tracks" checked> 行星轨迹</label>
+            <label style="margin-left: 8px;"><input type="checkbox" id="toggle-comet-tracks" checked> 彗星轨迹</label>
             <label style="margin-left: 8px;"><input type="checkbox" id="toggle-moon-tracks" checked> 卫星轨迹</label>
         </div>
         <div id="speed-control">
@@ -343,6 +355,7 @@
         const planets = [];
         const planetTracks = [];
         const moonTracks = [];
+        const cometTracks = [];
 
         // 纹理资源链接
         // 1. 主要行星使用 threex.planets (jsDelivr)
@@ -496,6 +509,9 @@
                         speed: 0.05 * (27.3 / 0.32), // ~4.26
                         inclination: 1.09, // 相对于火星赤道
                         texture: textures.phobos,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Phobos_colour_2008.jpg/800px-Phobos_colour_2008.jpg", // Wiki Commons 源
+                        irregular: true, // 不规则形状
+                        scale: [1.3, 1.0, 0.8], // 模拟 Phobos 的长条形状
                         description: "火卫一（Phobos）是火星两颗卫星中较大的一颗。",
                         details: { "英文名": "Phobos", "直径": "22.5 km", "轨道周期": "0.32 天" },
                         link: "https://zh.wikipedia.org/wiki/%E7%81%AB%E5%8D%AB%E4%B8%80"
@@ -508,6 +524,9 @@
                         speed: 0.05 * (27.3 / 1.26), // ~1.08
                         inclination: 1.79, // 相对于火星赤道
                         texture: textures.deimos,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Deimos-MRO.jpg/800px-Deimos-MRO.jpg", // 使用 MRO 高清图
+                        irregular: true, // 不规则形状
+                        scale: [1.2, 1.0, 0.8], // 模拟 Deimos
                         description: "火卫二（Deimos）是火星较小且较外侧的卫星。",
                         details: { "英文名": "Deimos", "直径": "12.4 km", "轨道周期": "1.26 天" },
                         link: "https://zh.wikipedia.org/wiki/%E7%81%AB%E5%8D%AB%E4%BA%8C"
@@ -543,6 +562,7 @@
                         speed: 0.05 * (27.3 / 1.77), // ~0.77
                         inclination: 0.05, // 木卫通常在赤道面
                         texture: textures.io,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Io_highest_resolution_true_color.jpg/800px-Io_highest_resolution_true_color.jpg",
                         description: "木卫一（Io）是太阳系中地质活动最活跃的天体，拥有400多座活火山。",
                         details: { "英文名": "Io", "直径": "3,643 km", "轨道周期": "1.77 天" },
                         link: "https://zh.wikipedia.org/wiki/%E6%9C%A8%E5%8D%AB%E4%B8%80"
@@ -555,6 +575,7 @@
                         speed: 0.05 * (27.3 / 3.55), // ~0.38
                         inclination: 0.47,
                         texture: textures.europa,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Europa-moon-with-margins.jpg/800px-Europa-moon-with-margins.jpg",
                         description: "木卫二（Europa）表面覆盖着冰层，冰下可能存在液态海洋。",
                         details: { "英文名": "Europa", "直径": "3,122 km", "轨道周期": "3.55 天" },
                         link: "https://zh.wikipedia.org/wiki/%E6%9C%A8%E5%8D%AB%E4%BA%8C"
@@ -567,6 +588,7 @@
                         speed: 0.05 * (27.3 / 7.15), // ~0.19
                         inclination: 0.20,
                         texture: textures.ganymede,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Ganymede_-_Perijove_34_Composite.png/800px-Ganymede_-_Perijove_34_Composite.png",
                         description: "木卫三（Ganymede）是太阳系最大的卫星，比水星还要大。",
                         details: { "英文名": "Ganymede", "直径": "5,268 km", "轨道周期": "7.15 天" },
                         link: "https://zh.wikipedia.org/wiki/%E6%9C%A8%E5%8D%AB%E4%B8%89"
@@ -579,6 +601,7 @@
                         speed: 0.05 * (27.3 / 16.69), // ~0.08
                         inclination: 0.28,
                         texture: textures.callisto,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Callisto.jpg/800px-Callisto.jpg",
                         description: "木卫四（Callisto）是太阳系中表面陨石坑最多的天体之一。",
                         details: { "英文名": "Callisto", "直径": "4,821 km", "轨道周期": "16.69 天" },
                         link: "https://zh.wikipedia.org/wiki/%E6%9C%A8%E5%8D%AB%E5%9B%9B"
@@ -616,6 +639,7 @@
                         speed: 0.05 * (27.3 / 15.95), // ~0.085
                         inclination: 0.348, // 相对土星赤道
                         texture: textures.titan,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Titan_in_true_color.jpg/800px-Titan_in_true_color.jpg",
                         description: "土卫六（Titan）是土星最大的卫星，也是太阳系唯一拥有浓厚大气层的卫星。",
                         details: { "英文名": "Titan", "直径": "5,150 km", "轨道周期": "15.95 天" },
                         link: "https://zh.wikipedia.org/wiki/%E5%9C%9F%E5%8D%AB%E5%85%AD"
@@ -651,6 +675,7 @@
                         speed: 0.05 * (27.3 / 8.7), // ~0.157
                         inclination: 0.34, // 相对天王星赤道 (注意天王星本身倾角很大)
                         texture: textures.titania,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Titania_%28moon%29_color_cropped.jpg/800px-Titania_%28moon%29_color_cropped.jpg",
                         description: "天卫三（Titania）是天王星最大的卫星。",
                         details: { "英文名": "Titania", "直径": "1,577 km", "轨道周期": "8.7 天" },
                         link: "https://zh.wikipedia.org/wiki/%E5%A4%A9%E5%8D%AB%E4%B8%89"
@@ -686,6 +711,7 @@
                         speed: -0.05 * (27.3 / 5.88), // ~ -0.23 (逆行)
                         inclination: 156.885, // 逆行轨道，倾角极大
                         texture: textures.triton,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Triton_moon_mosaic_Voyager_2_%28large%29.jpg/800px-Triton_moon_mosaic_Voyager_2_%28large%29.jpg", // 使用 Voyager 2 拼接图
                         description: "海卫一（Triton）是海王星最大的卫星，也是太阳系唯一拥有逆行轨道的大卫星。",
                         details: { "英文名": "Triton", "直径": "2,707 km", "轨道周期": "-5.88 天" },
                         link: "https://zh.wikipedia.org/wiki/%E6%B5%B7%E5%8D%AB%E4%B8%80"
@@ -721,11 +747,40 @@
                         speed: 0.05 * (27.3 / 6.4), 
                         inclination: 0.0, // 与冥王星互锁
                         texture: textures.charon,
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Charon_in_True_Color_-_High-Res.jpg/800px-Charon_in_True_Color_-_High-Res.jpg",
                         description: "冥卫一（Charon）是冥王星最大的卫星，与冥王星形成双矮行星系统。",
                         details: { "英文名": "Charon", "直径": "1,212 km", "轨道周期": "6.4 天" },
                         link: "https://zh.wikipedia.org/wiki/%E5%86%A5%E5%8D%AB%E4%B8%80"
                     }
                 ]
+            },
+            {
+                name: "哈雷彗星",
+                color: 0xAAAAAA, // 恢复灰色，因为有贴图了
+                radius: 1.5, 
+                // 默认模式轨道优化：
+                // 太阳半径30。为了避免近日点(30以内)穿模，我们设近日点 q ≈ 40
+                // 远日点 Q 设为 900 (在天王星和海王星之间)
+                // a = (40+900)/2 = 470
+                // e = (900-40)/940 ≈ 0.915
+                distance: 470, 
+                eccentricity: 0.915, 
+                inclination: 162.26, // 逆行
+                speed: 0.01 / 76.0, 
+                rotateSpeed: 0.05,
+                texture: textures.halley, 
+                realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Lspn_comet_halley.jpg/800px-Lspn_comet_halley.jpg", // Wiki 源
+                irregular: true, // 标记为不规则形状
+                scale: [1.5, 1.0, 0.8], // 形状拉伸比例 (长宽高)
+                description: "哈雷彗星是著名的短周期彗星，每隔75-76年就能从地球上用肉眼看到。它是唯一能用裸眼直接从地球看见的短周期彗星。",
+                details: {
+                    "平均直径": "11 km",
+                    "近日点": "0.6 AU",
+                    "远日点": "35.1 AU",
+                    "轨道周期": "76.1 年",
+                    "离心率": "0.967"
+                },
+                link: "https://zh.wikipedia.org/wiki/%E5%93%88%E9%9B%B7%E5%BD%97%E6%98%9F"
             }
         ];
 
@@ -1018,15 +1073,34 @@
                 }, undefined, (err) => console.warn("火星法线贴图加载失败"));
             }
 
-            const geometry = new THREE.SphereGeometry(data.radius, 64, 64);
+            let geometry;
+            // 针对哈雷彗星等不规则天体使用不同的 Geometry
+            if (data.irregular) {
+                // 使用二十面体作为基础，看起来更像不规则岩石
+                geometry = new THREE.IcosahedronGeometry(data.radius, 0);
+                // 扰动顶点 (可选，但这里为了简单直接用缩放)
+            } else {
+                geometry = new THREE.SphereGeometry(data.radius, 64, 64);
+            }
+
             const planetMesh = new THREE.Mesh(geometry, material);
+            
+            // 应用不规则缩放
+            if (data.irregular && data.scale) {
+                planetMesh.scale.set(data.scale[0], data.scale[1], data.scale[2]);
+                // 保存原始非均匀缩放比例，以便真实比例模式下恢复
+                planetMesh.userData.originalScaleVector = new THREE.Vector3(data.scale[0], data.scale[1], data.scale[2]);
+            } else {
+                planetMesh.userData.originalScaleVector = new THREE.Vector3(1, 1, 1);
+            }
             
             planetMesh.userData = { 
                 name: data.name,
                 description: data.description,
                 details: data.details,
                 link: data.link,
-                type: "planet"
+                realPhoto: data.realPhoto,
+                type: data.name.includes("彗星") ? "comet" : "planet"
             }; 
             planetMesh.castShadow = true;
             // 禁用接收阴影，防止被其他星体遮挡变黑
@@ -1099,7 +1173,11 @@
             // 将轨道线也放入 orbitGroup，这样轨道线也会跟着倾斜
             orbitGroup.add(track);
             // scene.add(track); // 移除直接添加到 scene
-            planetTracks.push(track); // 保存引用
+            if (data.name.includes("彗星")) {
+                cometTracks.push(track);
+            } else {
+                planetTracks.push(track); 
+            }
 
             // 土星环
             if (data.hasRing) {
@@ -1164,8 +1242,23 @@
                 });
             }
 
-                    const moonGeo = new THREE.SphereGeometry(moonData.radius, 32, 32);
+                    let moonGeo;
+                    if (moonData.irregular) {
+                        moonGeo = new THREE.IcosahedronGeometry(moonData.radius, 0);
+                    } else {
+                        moonGeo = new THREE.SphereGeometry(moonData.radius, 32, 32);
+                    }
+                    
                     const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+                    
+                    // 应用不规则缩放并保存原始比例
+                    if (moonData.irregular && moonData.scale) {
+                        moonMesh.scale.set(moonData.scale[0], moonData.scale[1], moonData.scale[2]);
+                        moonMesh.userData.originalScaleVector = new THREE.Vector3(moonData.scale[0], moonData.scale[1], moonData.scale[2]);
+                    } else {
+                        moonMesh.userData.originalScaleVector = new THREE.Vector3(1, 1, 1);
+                    }
+
                     moonMesh.castShadow = true;
                     // 禁用接收阴影，防止被其他星体遮挡变黑
                     moonMesh.receiveShadow = false;
@@ -1176,6 +1269,7 @@
                         description: moonData.description || `这是${data.name}的一颗卫星。`,
                         details: moonData.details || { "英文名": "Moon" },
                         link: moonData.link,
+                        realPhoto: moonData.realPhoto,
                         type: "moon"
                     };
                     
@@ -1480,7 +1574,7 @@
                 .start();
         }
         
-        // 3D 预览相关变量
+            // 3D 预览相关变量
         let previewRenderer, previewScene, previewCamera, previewObject, previewId;
         const previewContainer = document.getElementById('planet-preview-container');
 
@@ -1498,8 +1592,13 @@
             previewRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
             previewRenderer.setSize(width, height);
             previewRenderer.setPixelRatio(window.devicePixelRatio);
-            previewContainer.appendChild(previewRenderer.domElement);
+            // 注意：不再直接 appendChild，因为现在容器里可能有 img 标签
+            // previewContainer.appendChild(previewRenderer.domElement); 
             
+            // 确保 canvas 在 img 后面或者前面，通过 display 控制
+            previewRenderer.domElement.id = "planet-preview-canvas";
+            previewContainer.appendChild(previewRenderer.domElement);
+
             // 预览场景光照
             const ambient = new THREE.AmbientLight(0xffffff, 0.6);
             previewScene.add(ambient);
@@ -1523,7 +1622,15 @@
 
             // 创建新对象
             // 统一使用 SphereGeometry，不论目标是什么（确保是球体预览）
-            const geometry = new THREE.SphereGeometry(1.2, 64, 64);
+            // 除非是哈雷彗星等不规则体，预览也应该是不规则的？
+            // 简单起见，如果目标是不规则的，我们也尝试复制 geometry
+            let geometry;
+            if (targetObject.userData && targetObject.userData.irregular) {
+                 // 复用不规则 geometry (克隆)
+                 geometry = targetObject.geometry.clone();
+            } else {
+                 geometry = new THREE.SphereGeometry(1.2, 64, 64);
+            }
             
             // 尝试复用材质的 map
             let material;
@@ -1549,7 +1656,7 @@
                      
                      // 调整环的比例以适应预览球体 (预览球体半径 1.2)
                      // 原球体半径
-                     const originalRadius = targetObject.geometry.parameters.radius;
+                     const originalRadius = targetObject.geometry.parameters ? targetObject.geometry.parameters.radius : 1.2;
                      const scale = 1.2 / originalRadius;
                      
                      ring.scale.set(scale, scale, scale);
@@ -1619,8 +1726,28 @@
                 statsDiv.appendChild(linkDiv);
             }
 
-            // 更新 3D 预览
-            updatePreview(object);
+            // 处理预览图 vs 3D模型
+            const photoImg = document.getElementById('planet-photo-display');
+            
+            if (data.realPhoto) {
+                // 显示真实照片
+                photoImg.src = data.realPhoto;
+                photoImg.style.display = 'block';
+                
+                // 隐藏 3D canvas (如果已初始化)
+                if (previewRenderer) {
+                    previewRenderer.domElement.style.display = 'none';
+                }
+                // 停止动画
+                if (previewId) cancelAnimationFrame(previewId);
+            } else {
+                // 显示 3D 模型
+                photoImg.style.display = 'none';
+                if (previewRenderer) {
+                    previewRenderer.domElement.style.display = 'block';
+                }
+                updatePreview(object);
+            }
         }
         
         // 初始化导航列表
@@ -1642,6 +1769,11 @@
         document.getElementById('toggle-planet-tracks').addEventListener('change', (e) => {
             const visible = e.target.checked;
             planetTracks.forEach(track => track.visible = visible);
+        });
+
+        document.getElementById('toggle-comet-tracks').addEventListener('change', (e) => {
+            const visible = e.target.checked;
+            cometTracks.forEach(track => track.visible = visible);
         });
 
         document.getElementById('toggle-moon-tracks').addEventListener('change', (e) => {
@@ -1686,7 +1818,10 @@
             "土星": { au: 9.58, radiusRatio: 9.45 },
             "天王星": { au: 19.20, radiusRatio: 4.00 },
             "海王星": { au: 30.05, radiusRatio: 3.88 },
-            "冥王星": { au: 39.48, radiusRatio: 0.18 }
+            "冥王星": { au: 39.48, radiusRatio: 0.18 },
+            // 哈雷彗星半径极小 (5.5km / 6371km ≈ 0.00086)
+            // 真实比例下几乎不可见，我们给它一个最小可见值 0.05 (约为地球的 1/20) 方便观察
+            "哈雷彗星": { au: 17.8, radiusRatio: 0.05 }
         };
 
         // 切换逻辑
@@ -1729,13 +1864,24 @@
                 p.focusOffset = newDistance * p.eccentricity;
 
                 // 更新星球 Mesh 大小
-                p.mesh.scale.set(newScale, newScale, newScale);
+                if (p.mesh.userData.originalScaleVector) {
+                    const orig = p.mesh.userData.originalScaleVector;
+                    p.mesh.scale.copy(orig).multiplyScalar(newScale);
+                } else {
+                    p.mesh.scale.set(newScale, newScale, newScale);
+                }
                 
                 // 更新卫星系统 (距离和大小也都按行星的缩放比例调整，保持相对一致)
                 if (p.moons) {
                     p.moons.forEach(m => {
-                        // 卫星大小跟随行星缩放
-                        m.mesh.scale.set(newScale, newScale, newScale);
+                        // 卫星大小跟随行星缩放，同时保持自身形状
+                        if (m.mesh.userData.originalScaleVector) {
+                            const moonOrig = m.mesh.userData.originalScaleVector;
+                            m.mesh.scale.copy(moonOrig).multiplyScalar(newScale);
+                        } else {
+                            m.mesh.scale.set(newScale, newScale, newScale);
+                        }
+                        
                         // 卫星轨道半径也跟随缩放，防止穿模
                         m.distance = m.originalDistance * (isReal ? newScale : 1.0); // 需要保存 m.originalDistance
                         
