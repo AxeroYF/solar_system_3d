@@ -212,7 +212,7 @@
             font-family: sans-serif;
             text-align: right;
             z-index: 10;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.2);
             padding: 10px;
             border-radius: 8px;
         }
@@ -325,6 +325,9 @@
         <div id="speed-control">
             <label for="speed-slider">Time Speed: <span id="speed-value">1.0x</span></label>
             <input type="range" id="speed-slider" min="0.1" max="10" step="0.1" value="1.0">
+            <label style="margin-top: 8px; cursor: pointer; font-size: 14px;">
+                <input type="checkbox" id="toggle-real-scale"> 真实比例模式
+            </label>
             <button id="pause-btn">⏸️ Pause</button>
         </div>
     </div>
@@ -373,7 +376,9 @@
             callisto: moonBase + 'callisto.jpg',
             titan: moonBase + 'titan.jpg',
             triton: moonBase + 'triton.jpg',
-            titania: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Titania_%28moon%29_color_cropped.jpg/800px-Titania_%28moon%29_color_cropped.jpg' // 保持原源
+            titania: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Titania_%28moon%29_color_cropped.jpg/800px-Titania_%28moon%29_color_cropped.jpg', // 保持原源
+            pluto: texBase + 'plutomap1k.jpg',
+            charon: texBase + 'moonmap1k.jpg' // 暂时复用月球纹理作为冥卫一，或者寻找更好的
         };
 
         // 行星数据配置
@@ -513,7 +518,7 @@
                 name: "木星",
                 color: 0xD9A066,
                 radius: 30, 
-                distance: 300,
+                distance: 350,
                 eccentricity: 0.0489,
                 inclination: 1.3,
                 speed: 0.004,
@@ -534,7 +539,7 @@
                         name: "木卫一", // Io
                         color: 0xFFFF99,
                         radius: 2.8,
-                        distance: 45,
+                        distance: 42,
                         speed: 0.05 * (27.3 / 1.77), // ~0.77
                         inclination: 0.05, // 木卫通常在赤道面
                         texture: textures.io,
@@ -546,7 +551,7 @@
                         name: "木卫二", // Europa
                         color: 0xDDDDFF,
                         radius: 2.5,
-                        distance: 55,
+                        distance: 56,
                         speed: 0.05 * (27.3 / 3.55), // ~0.38
                         inclination: 0.47,
                         texture: textures.europa,
@@ -558,7 +563,7 @@
                         name: "木卫三", // Ganymede
                         color: 0xAAAAAA,
                         radius: 4.1,
-                        distance: 70,
+                        distance: 72,
                         speed: 0.05 * (27.3 / 7.15), // ~0.19
                         inclination: 0.20,
                         texture: textures.ganymede,
@@ -570,7 +575,7 @@
                         name: "木卫四", // Callisto
                         color: 0x777777,
                         radius: 3.8,
-                        distance: 85,
+                        distance: 90,
                         speed: 0.05 * (27.3 / 16.69), // ~0.08
                         inclination: 0.28,
                         texture: textures.callisto,
@@ -584,7 +589,7 @@
                 name: "土星",
                 color: 0xEEDDAA,
                 radius: 25,
-                distance: 450,
+                distance: 550,
                 eccentricity: 0.0565,
                 inclination: 2.48,
                 speed: 0.003,
@@ -621,7 +626,7 @@
                 name: "天王星",
                 color: 0xACE5EE,
                 radius: 18,
-                distance: 600,
+                distance: 800,
                 eccentricity: 0.0463,
                 inclination: 0.77,
                 speed: 0.002,
@@ -656,7 +661,7 @@
                 name: "海王星",
                 color: 0x5566FF,
                 radius: 17,
-                distance: 750,
+                distance: 1000,
                 eccentricity: 0.0086,
                 inclination: 1.77,
                 speed: 0.001,
@@ -686,16 +691,52 @@
                         link: "https://zh.wikipedia.org/wiki/%E6%B5%B7%E5%8D%AB%E4%B8%80"
                     }
                 ]
+            },
+            {
+                name: "冥王星",
+                color: 0xDDAA88,
+                radius: 2.3,
+                distance: 1250,
+                eccentricity: 0.248,
+                inclination: 17.16,
+                speed: 0.0008,
+                rotateSpeed: 0.005,
+                texture: textures.pluto,
+                description: "冥王星是柯伊伯带中最大的天体之一，曾被列为九大行星。它由岩石和冰组成，拥有一颗相对巨大的卫星——冥卫一。",
+                details: { 
+                    "平均直径": "2,377 km", 
+                    "距离太阳": "39.5 AU",
+                    "公转周期": "248 年",
+                    "自转周期": "6.4 天",
+                    "表面温度": "~-229°C",
+                    "卫星数量": "5"
+                },
+                link: "https://zh.wikipedia.org/wiki/%E5%86%A5%E7%8E%8B%E6%98%9F",
+                moons: [
+                    {
+                        name: "冥卫一", // Charon
+                        color: 0xCCCCCC,
+                        radius: 1.2,
+                        distance: 8,
+                        speed: 0.05 * (27.3 / 6.4), 
+                        inclination: 0.0, // 与冥王星互锁
+                        texture: textures.charon,
+                        description: "冥卫一（Charon）是冥王星最大的卫星，与冥王星形成双矮行星系统。",
+                        details: { "英文名": "Charon", "直径": "1,212 km", "轨道周期": "6.4 天" },
+                        link: "https://zh.wikipedia.org/wiki/%E5%86%A5%E5%8D%AB%E4%B8%80"
+                    }
+                ]
             }
         ];
 
         // 场景配置
         const scene = new THREE.Scene();
         
-        // 雾化效果，增加深邃感
-        scene.fog = new THREE.FogExp2(0x000000, 0.0005);
+        // 雾化效果，增加深邃感 (降低密度，防止远距离过暗)
+        // 修改：大幅降低雾浓度，防止星球在远处变得不可见
+        scene.fog = new THREE.FogExp2(0x000000, 0.00002);
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 5000);
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 30000);
         camera.position.set(0, 200, 400); // 初始视角
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -709,7 +750,7 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.minDistance = 2; // 允许放大到更近，方便观察小卫星
-        controls.maxDistance = 2000;
+        controls.maxDistance = 25000;
         // 启用鼠标中键平移
         controls.enablePan = true; 
         // 自定义按键映射: 左键旋转, 中键平移, 右键无(或缩放)
@@ -788,14 +829,15 @@
         function createStars() {
             const geometry = new THREE.BufferGeometry();
             const vertices = [];
-            for (let i = 0; i < 10000; i++) {
-                const x = THREE.MathUtils.randFloatSpread(4000);
-                const y = THREE.MathUtils.randFloatSpread(4000);
-                const z = THREE.MathUtils.randFloatSpread(4000);
+            // 增加星星数量和分布范围，以覆盖真实比例下的太阳系 (冥王星最远约 8000-10000)
+            for (let i = 0; i < 50000; i++) {
+                const x = THREE.MathUtils.randFloatSpread(60000); // 原 4000 -> 60000
+                const y = THREE.MathUtils.randFloatSpread(60000);
+                const z = THREE.MathUtils.randFloatSpread(60000);
                 vertices.push(x, y, z);
             }
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 });
+            const material = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5 }); 
             const stars = new THREE.Points(geometry, material);
             scene.add(stars);
         }
@@ -838,8 +880,67 @@
         );
         scene.add(sun);
 
-        // 太阳光 (点光源) - 降低强度
-        const sunLight = new THREE.PointLight(0xffffff, 1.2, 5000, 0); 
+        // 2.1 小行星带 (Asteroid Belt)
+        function createAsteroidBelt() {
+            const particleCount = 3000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = [];
+            const color = new THREE.Color();
+            
+            // 火星(180) 和 木星(350) 之间，大约在 200-250 范围 (给木星卫星留出空间)
+            const innerRadius = 200;
+            const outerRadius = 250;
+
+            for (let i = 0; i < particleCount; i++) {
+                // 随机半径
+                const r = innerRadius + Math.random() * (outerRadius - innerRadius);
+                // 随机角度
+                const theta = Math.random() * Math.PI * 2;
+                // 垂直分布 (稍微有一些厚度)
+                const y = (Math.random() - 0.5) * 10; 
+
+                const x = r * Math.cos(theta);
+                const z = r * Math.sin(theta);
+
+                positions.push(x, y, z);
+
+                // 颜色随机变化 (灰色/褐色)
+                const grayLevel = 0.4 + Math.random() * 0.4;
+                color.setRGB(grayLevel, grayLevel * 0.9, grayLevel * 0.8);
+                colors.push(color.r, color.g, color.b);
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({ 
+                size: 1.5, 
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                sizeAttenuation: true
+            });
+
+            const asteroidBelt = new THREE.Points(geometry, material);
+            asteroidBelt.userData = {
+                name: "小行星带",
+                description: "小行星带是位于火星和木星轨道之间的小行星密集区域，估计包含数百万颗小行星。",
+                tooltipSuffix: " (Asteroid Belt)" // 用于鼠标悬停提示
+            };
+            scene.add(asteroidBelt);
+            
+            // 旋转动画逻辑需要单独处理，保存引用
+            // 保存原始 geometry 供缩放恢复
+            asteroidBelt.userData.originalGeometry = geometry.clone();
+            return asteroidBelt;
+        }
+        
+        const asteroidBeltMesh = createAsteroidBelt();
+
+
+        // 太阳光 (点光源) - 调整范围
+        const sunLight = new THREE.PointLight(0xffffff, 1.2, 10000, 0); 
         sunLight.position.set(0, 0, 0);
         sunLight.castShadow = true;
         sunLight.shadow.bias = -0.0001;
@@ -848,12 +949,12 @@
         sunLight.shadow.mapSize.height = 2048;
         scene.add(sunLight);
 
-        // 环境光 - 降低亮度，使背光面更暗
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.15); 
+        // 环境光 - 提高亮度，避免背光面太暗
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); 
         scene.add(ambientLight);
         
-        // 半球光 - 降低强度
-        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.1);
+        // 半球光 - 增强一点地面反射光
+        const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x000000, 0.2);
         scene.add(hemisphereLight);
 
 
@@ -886,8 +987,8 @@
             // 使用 Lambert 材质
             const material = new THREE.MeshLambertMaterial({
                 color: data.color, // 初始颜色，加载纹理后会设为白色
-                emissive: 0x000000, // 纯黑自发光，确保背光面足够暗
-                emissiveIntensity: 0.0
+                emissive: 0x222222, // 增加自发光，确保在远处/背光面也能看到
+                emissiveIntensity: 0.5
             });
 
             // 异步加载纹理
@@ -898,7 +999,7 @@
                         tex.colorSpace = THREE.SRGBColorSpace;
                         material.map = tex;
                         material.color.setHex(0xffffff); // 纹理加载成功后，漫反射颜色设为白色
-                        material.emissive.setHex(0x000000); 
+                        material.emissive.setHex(0x222222); 
                         material.needsUpdate = true;
                     },
                     undefined,
@@ -992,6 +1093,8 @@
             });
             const track = new THREE.LineLoop(trackGeometry, trackMaterial);
             track.rotation.x = -Math.PI / 2;
+            // 防止在真实比例模式下，当相机靠近行星（远离轨道中心）时，巨大的轨道线被错误地视锥体剔除导致消失
+            track.frustumCulled = false;
             
             // 将轨道线也放入 orbitGroup，这样轨道线也会跟着倾斜
             orbitGroup.add(track);
@@ -1008,8 +1111,8 @@
                     side: THREE.DoubleSide,
                     transparent: true,
                     opacity: 0.8,
-                    emissive: 0x111111, // 环稍微亮一点
-                    emissiveIntensity: 0.1
+                    emissive: 0x222222, // 环稍微亮一点
+                    emissiveIntensity: 0.3
                 });
 
                 if (data.ringTexture) {
@@ -1044,8 +1147,8 @@
             // 卫星材质
             const moonMat = new THREE.MeshLambertMaterial({
                 color: moonData.color,
-                emissive: 0x000000,
-                emissiveIntensity: 0.0
+                emissive: 0x222222,
+                emissiveIntensity: 0.5
             });
 
             if (moonData.texture) {
@@ -1053,7 +1156,7 @@
                     tex.colorSpace = THREE.SRGBColorSpace;
                     moonMat.map = tex;
                     moonMat.color.setHex(0xffffff);
-                    moonMat.emissive.setHex(0x000000);
+                    moonMat.emissive.setHex(0x222222);
                     moonMat.needsUpdate = true;
                 }, undefined, (err) => {
                         // 失败时保持原色
@@ -1091,6 +1194,7 @@
                     });
                     const moonTrack = new THREE.LineLoop(moonTrackGeo, moonTrackMat);
                     moonTrack.rotation.x = -Math.PI / 2; // 默认水平
+                    moonTrack.frustumCulled = false; // 防止近距离观察卫星时轨道消失
 
                     // 创建卫星轨道容器，处理倾角
                     const moonOrbitGroup = new THREE.Group();
@@ -1112,8 +1216,10 @@
 
                     activeMoons.push({
                         mesh: moonMesh,
+                        trackMesh: moonTrack, // 保存卫星轨道线引用
                         group: moonOrbitGroup, // 保存容器引用以便动画更新（如果需要复杂计算）
                         distance: moonData.distance,
+                        originalDistance: moonData.distance, // 保存原始距离
                         speed: moonData.speed,
                         angle: Math.random() * Math.PI * 2
                     });
@@ -1124,9 +1230,12 @@
             planets.push({
                 mesh: planetMesh,
                 systemGroup: systemGroup, // 主要移动对象
+                trackMesh: track, // 保存轨道线引用
                 speed: data.speed,
                 rotateSpeed: data.rotateSpeed,
                 distance: a, // 半长轴
+                originalDistance: a, // 保存原始距离
+                originalRadius: data.radius, // 保存原始半径
                 eccentricity: e,
                 semiMinor: b,
                 focusOffset: c,
@@ -1138,6 +1247,17 @@
 
         // 生成所有行星
         planetData.forEach(data => createPlanet(data));
+
+
+        // 强制隐藏 loading，防止纹理加载失败导致卡住
+        // 在 2 秒后无论是否加载完成都显示场景
+        setTimeout(() => {
+            const loadingScreen = document.getElementById('loading');
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                loadingScreen.style.display = 'none';
+                console.log("Loading timeout: Force hiding loading screen.");
+            }
+        }, 2000);
 
 
         // --- 交互逻辑 ---
@@ -1556,15 +1676,164 @@
             }
         });
 
-        // 强制隐藏 loading，防止纹理加载失败导致卡住
-        // 在 2 秒后无论是否加载完成都显示场景
-        setTimeout(() => {
-            const loadingScreen = document.getElementById('loading');
-            if (loadingScreen && loadingScreen.style.display !== 'none') {
-                loadingScreen.style.display = 'none';
-                console.log("Loading timeout: Force hiding loading screen.");
+        // 真实比例相关数据和逻辑
+        const realScaleData = {
+            "水星": { au: 0.39, radiusRatio: 0.38 },
+            "金星": { au: 0.72, radiusRatio: 0.95 },
+            "地球": { au: 1.00, radiusRatio: 1.00 },
+            "火星": { au: 1.52, radiusRatio: 0.53 },
+            "木星": { au: 5.20, radiusRatio: 11.2 },
+            "土星": { au: 9.58, radiusRatio: 9.45 },
+            "天王星": { au: 19.20, radiusRatio: 4.00 },
+            "海王星": { au: 30.05, radiusRatio: 3.88 },
+            "冥王星": { au: 39.48, radiusRatio: 0.18 }
+        };
+
+        // 切换逻辑
+        const toggleRealScale = document.getElementById('toggle-real-scale');
+        
+        // 确保初始化时状态一致 (未勾选)
+        toggleRealScale.checked = false;
+        
+        toggleRealScale.addEventListener('change', (e) => {
+            const isReal = e.target.checked;
+            updatePlanetScales(isReal);
+        });
+
+        function updatePlanetScales(isReal) {
+            planets.forEach((p, index) => {
+                const realData = realScaleData[p.name];
+                
+                // 1. 更新距离
+                let newDistance, newScale;
+                if (isReal && realData) {
+                    newDistance = 200 * realData.au;
+                    // 真实比例下，地球半径设为 2 (原 10)，其他按比例
+                    // 原大小是视觉优化的，这里我们定义 EarthBaseRadius = 2
+                    const earthBaseRadius = 2;
+                    // 计算目标半径
+                    const targetRadius = earthBaseRadius * realData.radiusRatio;
+                    // 计算缩放比例 (相对于原始 Geometry 的 radius)
+                    // 原始 radius 存储在 p.originalRadius 中 (需要在 createPlanet 中保存)
+                    const scaleFactor = targetRadius / p.originalRadius;
+                    newScale = scaleFactor;
+                } else {
+                    // 恢复默认
+                    newDistance = p.originalDistance;
+                    newScale = 1.0; // 恢复原始 geometry 大小
+                }
+
+                // 更新轨道参数
+                p.distance = newDistance;
+                p.semiMinor = newDistance * Math.sqrt(1 - p.eccentricity * p.eccentricity);
+                p.focusOffset = newDistance * p.eccentricity;
+
+                // 更新星球 Mesh 大小
+                p.mesh.scale.set(newScale, newScale, newScale);
+                
+                // 更新卫星系统 (距离和大小也都按行星的缩放比例调整，保持相对一致)
+                if (p.moons) {
+                    p.moons.forEach(m => {
+                        // 卫星大小跟随行星缩放
+                        m.mesh.scale.set(newScale, newScale, newScale);
+                        // 卫星轨道半径也跟随缩放，防止穿模
+                        m.distance = m.originalDistance * (isReal ? newScale : 1.0); // 需要保存 m.originalDistance
+                        
+                        // 更新卫星轨道线 Geometry
+                         // 获取卫星轨道线
+                        // 注意：我们没有直接保存卫星轨道线的引用在 m 中，但 moonTracks 里有
+                        // 或者我们在 createPlanet 时保存一下引用到 m 对象里会更方便
+                        if (m.trackMesh) {
+                             const curve = new THREE.EllipseCurve(0, 0, m.distance, m.distance, 0, 2 * Math.PI);
+                             const points = curve.getPoints(64);
+                             m.trackMesh.geometry.setFromPoints(points);
+                        }
+                    });
+                }
+
+                // 更新行星轨道线 Geometry
+                // planetTracks 数组里的顺序和 planets 一致吗？createPlanet 是顺序执行的，应该一致
+                // 为防万一，我们在 createPlanet 里把 track 挂到 planet 对象上
+                if (p.trackMesh) {
+                    const c = p.focusOffset;
+                    const curve = new THREE.EllipseCurve(-c, 0, p.distance, p.semiMinor, 0, 2 * Math.PI);
+                    const points = curve.getPoints(256);
+                    p.trackMesh.geometry.setFromPoints(points);
+                }
+            });
+            
+            // 2. 更新小行星带
+            if (asteroidBeltMesh) {
+                 // 小行星带位于火星 (1.52 AU) 和木星 (5.20 AU) 之间
+                 // 核心区域大约在 2.2 - 3.2 AU
+                 // 真实比例距离: 200 * AU
+                 const realInner = 200 * 2.2; // 440
+                 const realOuter = 200 * 3.2; // 640
+                 
+                 // 原始范围 (代码中定义的): 200 - 250
+                 // 原始平均半径 ~225
+                 
+                 // 我们需要重新生成位置，或者简单缩放
+                 //由于分布是随机的环状，简单的 uniform scale 可能不够精确（因为内外径比例不同）
+                 // 最好的方法是重新生成位置，或者对每个粒子位置进行重新映射
+                 
+                 const positions = asteroidBeltMesh.geometry.attributes.position.array;
+                 const count = positions.length / 3;
+                 
+                 // 获取原始 Geometry (未缩放的)
+                 // 如果没有保存原始数据，多次切换会累积误差，最好每次基于原始数据计算
+                 // 我们在 createAsteroidBelt 中把原始 geometry saved 到 userData.originalGeometry
+                 
+                 const originalPos = asteroidBeltMesh.userData.originalGeometry.attributes.position.array;
+                 
+                 // 原始生成参数
+                 const origInner = 200;
+                 const origOuter = 250;
+                 const origWidth = origOuter - origInner;
+
+                 // 目标参数
+                 // 真实模式: 440 - 640
+                 // 默认模式: 200 - 250
+                 const targetInner = isReal ? realInner : origInner;
+                 const targetOuter = isReal ? realOuter : origOuter;
+                 const targetWidth = targetOuter - targetInner;
+                 
+                 // 粒子大小缩放
+                 // 真实模式下，为了配合缩小的行星，小行星也应该变小，否则像巨石
+                 // 原始 size = 1.5
+                 const newSize = isReal ? 0.8 : 1.5;
+                 asteroidBeltMesh.material.size = newSize;
+                 
+                 for(let i=0; i<count; i++) {
+                     const ix = i*3;
+                     const iy = i*3+1;
+                     const iz = i*3+2;
+                     
+                     const ox = originalPos[ix];
+                     const oy = originalPos[iy];
+                     const oz = originalPos[iz];
+                     
+                     // 计算原始半径和角度
+                     const oldR = Math.sqrt(ox*ox + oz*oz);
+                     const angle = Math.atan2(oz, ox);
+                     
+                     // 归一化半径 (0.0 - 1.0)
+                     const normalizedR = (oldR - origInner) / origWidth;
+                     
+                     // 映射到新半径
+                     // 保持相对分布
+                     const newR = targetInner + normalizedR * targetWidth;
+                     
+                     positions[ix] = newR * Math.cos(angle);
+                     positions[iz] = newR * Math.sin(angle);
+                     // Y轴 (厚度) 也适当缩放
+                     positions[iy] = oy * (isReal ? 2.0 : 1.0); // 真实距离下稍微厚一点
+                 }
+                 
+                 asteroidBeltMesh.geometry.attributes.position.needsUpdate = true;
             }
-        }, 2000);
+        }
+
 
         function animate() {
             requestAnimationFrame(animate);
@@ -1583,6 +1852,11 @@
 
             // 太阳自转
             sun.rotation.y += 0.002 * delta * timeSpeed;
+            
+            // 小行星带缓慢旋转
+            if (asteroidBeltMesh && timeSpeed > 0) {
+                asteroidBeltMesh.rotation.y += 0.0005 * delta * timeSpeed;
+            }
 
             // 轨道运动缩放系数
             // 用于匹配 timeSpeed: 当 timeSpeed=1 (1天/秒) 时，月球(周期27.3天)应在约27.3秒转一圈
@@ -1647,7 +1921,11 @@
             // 只有在未聚焦且鼠标悬停时才显示 tooltip
             if (!isFocused) {
                 raycaster.setFromCamera(mouse, camera);
+                raycaster.params.Points.threshold = 2; // 设置点云检测阈值，更容易选中
+
                 const targetObjects = [sun];
+                if (asteroidBeltMesh) targetObjects.push(asteroidBeltMesh); // 添加小行星带
+
                 planets.forEach(p => {
                     targetObjects.push(p.mesh);
                     if (p.moons) {
