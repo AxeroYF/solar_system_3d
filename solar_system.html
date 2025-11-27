@@ -351,11 +351,34 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import * as TWEEN from '@tweenjs/tween.js';
 
+        // --- Shader 定义 (大气层光晕) ---
+        const atmosphereVertexShader = `
+            varying vec3 vNormal;
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+
+        const atmosphereFragmentShader = `
+            varying vec3 vNormal;
+            uniform vec3 glowColor;
+            uniform float coef;
+            uniform float power;
+            uniform float opacity; // 添加透明度 uniform
+            void main() {
+                float intensity = pow(coef - dot(vNormal, vec3(0, 0, 1.0)), power);
+                gl_FragColor = vec4(glowColor, 1.0) * intensity;
+                gl_FragColor.a *= opacity; // 应用整体透明度
+            }
+        `;
+
         // --- 缺失的变量定义 ---
         const planets = [];
         const planetTracks = [];
         const moonTracks = [];
         const cometTracks = [];
+        const cometTails = []; // 存储彗尾对象
 
         // 纹理资源链接
         // 1. 主要行星使用 threex.planets (jsDelivr)
@@ -391,8 +414,29 @@
             triton: moonBase + 'triton.jpg',
             titania: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Titania_%28moon%29_color_cropped.jpg/800px-Titania_%28moon%29_color_cropped.jpg', // 保持原源
             pluto: texBase + 'plutomap1k.jpg',
-            charon: texBase + 'moonmap1k.jpg' // 暂时复用月球纹理作为冥卫一，或者寻找更好的
+            charon: texBase + 'moonmap1k.jpg', // 暂时复用月球纹理作为冥卫一
+            ceres: texBase + 'ceresmap.jpg', // 谷神星
+            // ISS 纹理 (使用金属质感或简单的白色纹理)
+            iss: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/International_Space_Station_after_undocking_of_STS-132.jpg/640px-International_Space_Station_after_undocking_of_STS-132.jpg',
+            // 生成彗尾纹理
+            cometTail: createCometTailTexture()
         };
+
+        // 生成简单的彗尾渐变纹理
+        function createCometTailTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 256;
+            const context = canvas.getContext('2d');
+            const gradient = context.createLinearGradient(0, 0, 0, 256);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+            gradient.addColorStop(0.4, 'rgba(200, 220, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 64, 256);
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        }
 
         // 行星数据配置
         const planetData = [
@@ -474,6 +518,25 @@
                             "轨道周期": "27.3 天"
                         },
                         link: "https://zh.wikipedia.org/wiki/%E6%9C%88%E7%90%83"
+                    },
+                    {
+                        name: "国际空间站",
+                        color: 0xDDDDDD,
+                        radius: 0.5, // 极小，示意性
+                        distance: 13, // 位于地球(10)和月球(20)之间，非常贴近地球
+                        speed: 1.5, // 速度极快 (90分钟一圈)
+                        inclination: 51.6, // 轨道倾角
+                        texture: null, // 使用模型或简单几何体
+                        realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/The_station_pictured_from_the_SpaceX_Crew_Dragon_5_%28cropped%29.jpg/800px-The_station_pictured_from_the_SpaceX_Crew_Dragon_5_%28cropped%29.jpg",
+                        isSpacecraft: true, // 标记为航天器
+                        description: "国际空间站（ISS）是位于低地轨道的模块化空间站，是人类历史上最大的太空工程。",
+                        details: {
+                            "高度": "~400 km",
+                            "速度": "27,600 km/h",
+                            "轨道周期": "~93 分钟",
+                            "发射时间": "1998年"
+                        },
+                        link: "https://zh.wikipedia.org/wiki/%E5%9B%BD%E9%99%85%E7%A9%BA%E9%97%B4%E7%AB%99"
                     }
                 ]
             },
@@ -532,6 +595,28 @@
                         link: "https://zh.wikipedia.org/wiki/%E7%81%AB%E5%8D%AB%E4%BA%8C"
                     }
                 ]
+            },
+            {
+                name: "谷神星",
+                color: 0x888888,
+                radius: 1.0, // 比月球(2.7)小
+                distance: 220, // 位于小行星带 (200-250)
+                eccentricity: 0.0758,
+                inclination: 10.6,
+                speed: 0.007,
+                rotateSpeed: 0.05,
+                texture: textures.ceres,
+                realPhoto: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Ceres_-_RC3_-_Haulani_Crater_%2822381131691%29_%28cropped%29.jpg/800px-Ceres_-_RC3_-_Haulani_Crater_%2822381131691%29_%28cropped%29.jpg",
+                description: "谷神星（Ceres）是火星和木星之间小行星带中唯一的矮行星。它是小行星带中最大的天体。",
+                details: { 
+                    "平均直径": "946 km", 
+                    "距离太阳": "2.77 AU",
+                    "公转周期": "4.6 年",
+                    "自转周期": "9小时4分",
+                    "表面温度": "~-105°C",
+                    "分类": "矮行星"
+                },
+                link: "https://zh.wikipedia.org/wiki/%E8%B0%B7%E7%A5%9E%E6%98%9F"
             },
             {
                 name: "木星",
@@ -993,6 +1078,62 @@
         
         const asteroidBeltMesh = createAsteroidBelt();
 
+        // 2.2 柯伊伯带 (Kuiper Belt)
+        function createKuiperBelt() {
+            const particleCount = 6000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = [];
+            const color = new THREE.Color();
+            
+            // 海王星 (1000) 外侧，范围约 1100 - 1600
+            const innerRadius = 1100;
+            const outerRadius = 1600;
+
+            for (let i = 0; i < particleCount; i++) {
+                const r = innerRadius + Math.random() * (outerRadius - innerRadius);
+                const theta = Math.random() * Math.PI * 2;
+                // 柯伊伯带比小行星带更厚一些
+                const y = (Math.random() - 0.5) * 60; 
+
+                const x = r * Math.cos(theta);
+                const z = r * Math.sin(theta);
+
+                positions.push(x, y, z);
+
+                // 颜色偏冷 (冰冷天体)
+                // 蓝灰色调
+                const grayLevel = 0.5 + Math.random() * 0.3;
+                color.setRGB(grayLevel * 0.8, grayLevel * 0.9, grayLevel); 
+                colors.push(color.r, color.g, color.b);
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({ 
+                size: 2.0, 
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                sizeAttenuation: true
+            });
+
+            const kuiperBelt = new THREE.Points(geometry, material);
+            kuiperBelt.userData = {
+                name: "柯伊伯带",
+                description: "柯伊伯带是位于海王星轨道外侧的圆盘状区域，包含大量冰冻小天体，是短周期彗星的来源地。",
+                tooltipSuffix: " (Kuiper Belt)"
+            };
+            scene.add(kuiperBelt);
+            
+            // 保存原始 Geometry 供缩放恢复
+            kuiperBelt.userData.originalGeometry = geometry.clone();
+            return kuiperBelt;
+        }
+
+        const kuiperBeltMesh = createKuiperBelt();
+
 
         // 太阳光 (点光源) - 调整范围
         const sunLight = new THREE.PointLight(0xffffff, 1.2, 10000, 0); 
@@ -1045,6 +1186,39 @@
                 emissive: 0x222222, // 增加自发光，确保在远处/背光面也能看到
                 emissiveIntensity: 0.5
             });
+
+            // 如果是彗星，创建彗尾
+            if (data.type === "comet") {
+                // 使用圆柱体模拟彗尾
+                const tailLength = 60; // 初始长度
+                // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
+                // 上大下小(0)，模拟锥形
+                const tailGeo = new THREE.CylinderGeometry(data.radius * 1.2, 0, tailLength, 32, 1, true);
+                // 将几何体原点移到顶部中心，方便定位到彗星中心
+                tailGeo.translate(0, -tailLength / 2, 0);
+                // 旋转使其沿着 Z 轴负方向延伸 (Three.js lookAt 默认是 Z 轴正方向，我们需要反向，或者旋转几何体)
+                // 这里让圆柱体沿着 X 轴或 Z 轴排列
+                tailGeo.rotateX(-Math.PI / 2); // 旋转后，圆柱体指向 Z 轴负方向（如果原点在顶部）
+                
+                const tailMat = new THREE.MeshBasicMaterial({
+                    map: textures.cometTail,
+                    transparent: true,
+                    opacity: 0.6,
+                    side: THREE.DoubleSide,
+                    depthWrite: false, // 防止遮挡透明物体
+                    blending: THREE.AdditiveBlending
+                });
+                
+                const tailMesh = new THREE.Mesh(tailGeo, tailMat);
+                // 初始不添加到 scene，在 animate 中更新
+                scene.add(tailMesh);
+                cometTails.push({
+                    mesh: tailMesh,
+                    target: planetMesh, // 彗尾跟随的彗星 Mesh
+                    maxLength: tailLength,
+                    baseRadius: data.radius * 1.2
+                });
+            }
 
             // 异步加载纹理
             if (data.texture) {
@@ -1146,7 +1320,87 @@
                         console.warn("云层纹理加载失败");
                     });
                 }
+                
+                // 3. 添加大气光晕
+                const atmoGeo = new THREE.SphereGeometry(data.radius + 1.5, 64, 64);
+                const atmoMat = new THREE.ShaderMaterial({
+                    vertexShader: atmosphereVertexShader,
+                    fragmentShader: atmosphereFragmentShader,
+                    uniforms: {
+                        glowColor: { value: new THREE.Color(0x0055aa) }, // 调暗蓝色光晕 (原 0x0088ff)
+                        coef: { value: 0.4 }, // 降低系数，使光晕更内敛 (原 0.6)
+                        power: { value: 5.0 } // 增加指数，使边缘衰减更快，更柔和 (原 4.0)
+                    },
+                    side: THREE.BackSide,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 0.6 // 整体透明度
+                });
+                const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
+                planetMesh.add(atmoMesh);
             }
+            
+            // 金星特殊处理：大气光晕
+            if (data.name === "金星") {
+                const atmoGeo = new THREE.SphereGeometry(data.radius + 1.2, 64, 64);
+                const atmoMat = new THREE.ShaderMaterial({
+                    vertexShader: atmosphereVertexShader,
+                    fragmentShader: atmosphereFragmentShader,
+                    uniforms: {
+                        glowColor: { value: new THREE.Color(0xcc9966) }, // 调暗金黄色 (原 0xffddaa)
+                        coef: { value: 0.4 }, // (原 0.5)
+                        power: { value: 5.5 } // (原 4.5)
+                    },
+                    side: THREE.BackSide,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 0.6
+                });
+                const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
+                planetMesh.add(atmoMesh);
+            }
+
+            // 火星特殊处理：稀薄云层 + 红色大气光晕
+            if (data.name === "火星") {
+                // 稀薄云层 (复用地球云层纹理，但透明度极低)
+                if (textures.earthClouds) {
+                    textureLoader.load(textures.earthClouds, (cloudTex) => {
+                        const cloudsGeo = new THREE.SphereGeometry(data.radius + 0.03, 64, 64);
+                        const cloudsMat = new THREE.MeshLambertMaterial({
+                            map: cloudTex,
+                            transparent: true,
+                            opacity: 0.15, // 再次降低透明度 (原 0.2)
+                            blending: THREE.AdditiveBlending,
+                            side: THREE.DoubleSide 
+                        });
+                        const cloudsMesh = new THREE.Mesh(cloudsGeo, cloudsMat);
+                        // 稍微调整云层颜色偏红尘
+                        cloudsMesh.material.color = new THREE.Color(0xffcccc);
+                        planetMesh.add(cloudsMesh); 
+                        // 保存引用以便旋转
+                        if(!planetMesh.userData.clouds) planetMesh.userData.clouds = cloudsMesh;
+                    });
+                }
+                
+                // 大气光晕
+                const atmoGeo = new THREE.SphereGeometry(data.radius + 0.8, 64, 64);
+                const atmoMat = new THREE.ShaderMaterial({
+                    vertexShader: atmosphereVertexShader,
+                    fragmentShader: atmosphereFragmentShader,
+                    uniforms: {
+                        glowColor: { value: new THREE.Color(0xaa3300) }, // 调暗红色 (原 0xff4400)
+                        coef: { value: 0.3 }, // 降低系数 (原 0.5)
+                        power: { value: 6.0 } // 增加指数 (原 5.0)
+                    },
+                    side: THREE.BackSide,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    opacity: 0.5
+                });
+                const atmoMesh = new THREE.Mesh(atmoGeo, atmoMat);
+                planetMesh.add(atmoMesh);
+            }
+            
             // ...
 
             // 轨道线 (增强可见性) - 轨道线是相对于 Scene 的，保持不变
@@ -1243,7 +1497,12 @@
             }
 
                     let moonGeo;
-                    if (moonData.irregular) {
+                    if (moonData.isSpacecraft) {
+                        // 简单的 ISS 形状模拟 (使用几个几何体组合，这里简化为一个长方体)
+                        moonGeo = new THREE.BoxGeometry(moonData.radius * 4, moonData.radius, moonData.radius * 2);
+                        moonMat.color.setHex(0xEEEEEE);
+                        moonMat.emissive.setHex(0x555555);
+                    } else if (moonData.irregular) {
                         moonGeo = new THREE.IcosahedronGeometry(moonData.radius, 0);
                     } else {
                         moonGeo = new THREE.SphereGeometry(moonData.radius, 32, 32);
@@ -1251,6 +1510,20 @@
                     
                     const moonMesh = new THREE.Mesh(moonGeo, moonMat);
                     
+                    // ISS 附加组件 (太阳能板)
+                    if (moonData.isSpacecraft) {
+                        const panelGeo = new THREE.BoxGeometry(moonData.radius * 1, moonData.radius * 0.1, moonData.radius * 6);
+                        const panelMat = new THREE.MeshLambertMaterial({ color: 0x3333AA, emissive: 0x111155 });
+                        
+                        const leftPanel = new THREE.Mesh(panelGeo, panelMat);
+                        leftPanel.position.set(-moonData.radius * 2.5, 0, 0);
+                        moonMesh.add(leftPanel);
+                        
+                        const rightPanel = new THREE.Mesh(panelGeo, panelMat);
+                        rightPanel.position.set(moonData.radius * 2.5, 0, 0);
+                        moonMesh.add(rightPanel);
+                    }
+
                     // 应用不规则缩放并保存原始比例
                     if (moonData.irregular && moonData.scale) {
                         moonMesh.scale.set(moonData.scale[0], moonData.scale[1], moonData.scale[2]);
@@ -1520,7 +1793,21 @@
                 tooltip.style.display = 'none';
 
                 // 动画计算 ...
-                const radius = object.geometry.parameters.radius;
+                let radius = 0;
+                if (object.geometry.parameters && object.geometry.parameters.radius) {
+                    radius = object.geometry.parameters.radius;
+                } else if (object.geometry.boundingBox) {
+                    // 如果有 boundingBox (通常需要 computeBoundingBox)
+                    const box = object.geometry.boundingBox;
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+                    radius = Math.max(size.x, size.y, size.z) / 2;
+                } else {
+                    // 简单的备用方案：计算几何体的包围球
+                    object.geometry.computeBoundingSphere();
+                    radius = object.geometry.boundingSphere.radius;
+                }
+                
                 const offsetDistance = radius * 4 + (object === sun ? 50 : 10); 
                 
                 // 强制更新一下 controls target
@@ -1636,9 +1923,13 @@
             let material;
             if (targetObject.material) {
                 material = targetObject.material.clone();
-                // 确保预览时材质是亮的
-                material.emissiveIntensity = 0.5; 
-                material.emissive.setHex(0x222222);
+                
+                // 只有标准材质或Lambert材质才支持 emissive
+                if (material.type !== 'MeshBasicMaterial') {
+                    // 确保预览时材质是亮的
+                    material.emissiveIntensity = 0.5; 
+                    material.emissive.setHex(0x222222);
+                }
             } else {
                 material = new THREE.MeshLambertMaterial({ color: 0x888888 });
             }
@@ -1814,6 +2105,11 @@
             "金星": { au: 0.72, radiusRatio: 0.95 },
             "地球": { au: 1.00, radiusRatio: 1.00 },
             "火星": { au: 1.52, radiusRatio: 0.53 },
+            // 国际空间站 (高度仅400km，约为地球半径的1/16，非常贴近)
+            // 真实比例下几乎贴在地球表面，为了可见性我们稍微放宽一点点
+            "国际空间站": { au: 1.0005, radiusRatio: 0.01 }, 
+            // 谷神星
+            "谷神星": { au: 2.77, radiusRatio: 0.074 },
             "木星": { au: 5.20, radiusRatio: 11.2 },
             "土星": { au: 9.58, radiusRatio: 9.45 },
             "天王星": { au: 19.20, radiusRatio: 4.00 },
@@ -1909,75 +2205,59 @@
             });
             
             // 2. 更新小行星带
-            if (asteroidBeltMesh) {
-                 // 小行星带位于火星 (1.52 AU) 和木星 (5.20 AU) 之间
-                 // 核心区域大约在 2.2 - 3.2 AU
-                 // 真实比例距离: 200 * AU
-                 const realInner = 200 * 2.2; // 440
-                 const realOuter = 200 * 3.2; // 640
-                 
-                 // 原始范围 (代码中定义的): 200 - 250
-                 // 原始平均半径 ~225
-                 
-                 // 我们需要重新生成位置，或者简单缩放
-                 //由于分布是随机的环状，简单的 uniform scale 可能不够精确（因为内外径比例不同）
-                 // 最好的方法是重新生成位置，或者对每个粒子位置进行重新映射
-                 
-                 const positions = asteroidBeltMesh.geometry.attributes.position.array;
-                 const count = positions.length / 3;
-                 
-                 // 获取原始 Geometry (未缩放的)
-                 // 如果没有保存原始数据，多次切换会累积误差，最好每次基于原始数据计算
-                 // 我们在 createAsteroidBelt 中把原始 geometry saved 到 userData.originalGeometry
-                 
-                 const originalPos = asteroidBeltMesh.userData.originalGeometry.attributes.position.array;
-                 
-                 // 原始生成参数
-                 const origInner = 200;
-                 const origOuter = 250;
-                 const origWidth = origOuter - origInner;
-
-                 // 目标参数
-                 // 真实模式: 440 - 640
-                 // 默认模式: 200 - 250
-                 const targetInner = isReal ? realInner : origInner;
-                 const targetOuter = isReal ? realOuter : origOuter;
-                 const targetWidth = targetOuter - targetInner;
-                 
-                 // 粒子大小缩放
-                 // 真实模式下，为了配合缩小的行星，小行星也应该变小，否则像巨石
-                 // 原始 size = 1.5
-                 const newSize = isReal ? 0.8 : 1.5;
-                 asteroidBeltMesh.material.size = newSize;
-                 
-                 for(let i=0; i<count; i++) {
-                     const ix = i*3;
-                     const iy = i*3+1;
-                     const iz = i*3+2;
-                     
-                     const ox = originalPos[ix];
-                     const oy = originalPos[iy];
-                     const oz = originalPos[iz];
-                     
-                     // 计算原始半径和角度
-                     const oldR = Math.sqrt(ox*ox + oz*oz);
-                     const angle = Math.atan2(oz, ox);
-                     
-                     // 归一化半径 (0.0 - 1.0)
-                     const normalizedR = (oldR - origInner) / origWidth;
-                     
-                     // 映射到新半径
-                     // 保持相对分布
-                     const newR = targetInner + normalizedR * targetWidth;
-                     
-                     positions[ix] = newR * Math.cos(angle);
-                     positions[iz] = newR * Math.sin(angle);
-                     // Y轴 (厚度) 也适当缩放
-                     positions[iy] = oy * (isReal ? 2.0 : 1.0); // 真实距离下稍微厚一点
-                 }
-                 
-                 asteroidBeltMesh.geometry.attributes.position.needsUpdate = true;
+            updateBelt(asteroidBeltMesh, 200, 250, 2.2, 3.2, isReal);
+            
+            // 3. 更新柯伊伯带
+            // 默认: 1100-1600
+            // 真实: 30-50 AU (6000 - 10000)
+            updateBelt(kuiperBeltMesh, 1100, 1600, 30, 50, isReal);
+        }
+        
+        // 通用带状结构更新函数
+        function updateBelt(mesh, origInner, origOuter, realInnerAU, realOuterAU, isReal) {
+            if (!mesh) return;
+            
+            const positions = mesh.geometry.attributes.position.array;
+            const count = positions.length / 3;
+            const originalPos = mesh.userData.originalGeometry.attributes.position.array;
+            
+            const origWidth = origOuter - origInner;
+            
+            // 真实模式距离
+            const realInner = 200 * realInnerAU;
+            const realOuter = 200 * realOuterAU;
+            
+            const targetInner = isReal ? realInner : origInner;
+            const targetOuter = isReal ? realOuter : origOuter;
+            const targetWidth = targetOuter - targetInner;
+            
+            // 缩放粒子大小
+            const newSize = isReal ? (mesh === asteroidBeltMesh ? 0.8 : 1.5) : (mesh === asteroidBeltMesh ? 1.5 : 2.0);
+            mesh.material.size = newSize;
+            
+            for(let i=0; i<count; i++) {
+                const ix = i*3;
+                const iy = i*3+1;
+                const iz = i*3+2;
+                
+                const ox = originalPos[ix];
+                const oy = originalPos[iy];
+                const oz = originalPos[iz];
+                
+                const oldR = Math.sqrt(ox*ox + oz*oz);
+                const angle = Math.atan2(oz, ox);
+                
+                const normalizedR = (oldR - origInner) / origWidth;
+                // 简单的 clamp 防止越界 (随机生成的原始数据可能稍微超出范围)
+                const clampedNormR = Math.max(0, Math.min(1, normalizedR));
+                
+                const newR = targetInner + clampedNormR * targetWidth;
+                
+                positions[ix] = newR * Math.cos(angle);
+                positions[iz] = newR * Math.sin(angle);
+                positions[iy] = oy * (isReal ? (mesh === asteroidBeltMesh ? 2.0 : 10.0) : 1.0); 
             }
+            mesh.geometry.attributes.position.needsUpdate = true;
         }
 
 
@@ -1999,9 +2279,9 @@
             // 太阳自转
             sun.rotation.y += 0.002 * delta * timeSpeed;
             
-            // 小行星带缓慢旋转
-            if (asteroidBeltMesh && timeSpeed > 0) {
-                asteroidBeltMesh.rotation.y += 0.0005 * delta * timeSpeed;
+            // 柯伊伯带缓慢旋转
+            if (kuiperBeltMesh && timeSpeed > 0) {
+                kuiperBeltMesh.rotation.y += 0.0002 * delta * timeSpeed;
             }
 
             // 轨道运动缩放系数
@@ -2061,6 +2341,37 @@
                     }
                 }
             });
+
+            // 更新彗尾
+            if (cometTails.length > 0) {
+                const sunPos = new THREE.Vector3(0,0,0);
+                cometTails.forEach(tail => {
+                    // 获取彗星世界坐标
+                    const cometPos = new THREE.Vector3();
+                    tail.target.getWorldPosition(cometPos);
+                    
+                    // 更新位置
+                    tail.mesh.position.copy(cometPos);
+                    
+                    // 计算朝向：彗尾始终背向太阳
+                    // 向量 = 彗星位置 - 太阳位置
+                    const direction = new THREE.Vector3().subVectors(cometPos, sunPos).normalize();
+                    // 计算目标点：彗星位置 + 方向向量 * 长度
+                    const target = cometPos.clone().add(direction);
+                    tail.mesh.lookAt(target);
+                    
+                    // 动态调整长度和透明度 (离太阳越近，尾巴越长越亮)
+                    const distanceToSun = cometPos.distanceTo(sunPos);
+                    // 简单的线性衰减模型
+                    // 假设近日点 40，远日点 900
+                    // 在 40 时 scale 1.5, 在 300 时 scale 0.1
+                    let scale = Math.max(0.1, 1.5 - (distanceToSun / 400));
+                    
+                    // Z轴是长度方向
+                    tail.mesh.scale.set(scale, scale, scale * 1.5); 
+                    tail.mesh.material.opacity = Math.max(0, scale * 0.8);
+                });
+            }
 
 
             // 射线检测
