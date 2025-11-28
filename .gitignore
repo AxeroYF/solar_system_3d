@@ -1,4 +1,14 @@
+# 忽略所有文件
+*
+
+# 不忽略目录（以便递归检查），但排除特定大目录
+!*/
 node_modules/
 dist/
-.DS_Store
-*.log
+
+# 白名单文件和文件夹
+!solar_system.html
+!README.md
+!textures/
+!textures/**
+!.gitignore
