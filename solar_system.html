@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 太阳系模拟</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "@tweenjs/tween.js": "https://unpkg.com/@tweenjs/tween.js@23.1.1/dist/tween.esm.js"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="info">
+        <h1>3D 太阳系模拟</h1>
+        <p>左键旋转 | 滚轮缩放 | 方向键平移</p>
+    </div>
+
+    <div id="help-btn" title="帮助">?</div>
+
+    <div id="help-panel">
+        <h2>系统帮助</h2>
+        <ul>
+            <li><b>旋转视角：</b> 按住鼠标左键拖动</li>
+            <li><b>缩放视角：</b> 滚动鼠标滚轮</li>
+            <li><b>平移视角：</b> 按住鼠标中键拖动 或 使用方向键/WASD</li>
+            <li><b>触屏操作：</b> 单指旋转，双指缩放/平移</li>
+            <li><b>查看详情：</b> 点击星球可聚焦并查看详细信息</li>
+            <li><b>切换星球：</b> 在详情页点击 Prev/Next 或直接点击其他星球</li>
+            <li><b>时间控制：</b> 拖动滑块调整速度，点击暂停/播放，或点击"回到今天"</li>
+            <li><b>日期跳转：</b> 点击左上角日期显示区域可手动设定年月日</li>
+            <li><b>显示设置：</b> 开关行星/彗星/卫星轨迹，切换"真实比例模式"</li>
+        </ul>
+        <div class="close-hint" id="close-help">点击此处或按 ESC 关闭</div>
+    </div>
+
+    <div id="planet-info-panel">
+        <div class="close-btn" id="panel-close-btn">×</div>
+        <h2 id="panel-name">Planet Name</h2>
+        <div id="planet-preview-container">
+            <img id="planet-photo-display" src="" alt="Planet Photo">
+        </div>
+        <p id="panel-desc">Planet description goes here...</p>
+        <div id="panel-stats"></div>
+        <div class="nav-buttons">
+            <button id="prev-btn" class="nav-btn">← Prev</button>
+            <button id="next-btn" class="nav-btn">Next →</button>
+        </div>
+        <div class="close-hint" id="panel-close-hint">点击此处 或 按 ESC 返回</div>
+    </div>
+
+    <div id="date-picker-modal">
+        <h3>时间旅行</h3>
+        <div class="date-inputs">
+            <div class="date-input-group">
+                <label>年</label>
+                <input type="number" id="input-year" min="1000" max="9999" value="2024">
+            </div>
+            <div class="date-input-group">
+                <label>月</label>
+                <input type="number" id="input-month" min="1" max="12" value="1">
+            </div>
+            <div class="date-input-group">
+                <label>日</label>
+                <input type="number" id="input-day" min="1" max="31" value="1">
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button class="modal-btn btn-cancel" id="date-cancel">取消</button>
+            <button class="modal-btn btn-confirm" id="date-confirm">确定</button>
+        </div>
+    </div>
+
+    <div id="time-display" title="点击调整时间">
+        <div>Simulated Time</div>
+        <div id="date-text">2024-01-01</div>
+    </div>
+    <div id="controls-ui">
+        <div id="track-switches" style="margin-bottom: 10px;">
+            <label><input type="checkbox" id="toggle-planet-tracks" checked> 行星轨迹</label>
+            <label style="margin-left: 8px;"><input type="checkbox" id="toggle-comet-tracks" checked> 彗星轨迹</label>
+            <label style="margin-left: 8px;"><input type="checkbox" id="toggle-moon-tracks" checked> 卫星轨迹</label>
+        </div>
+        <div id="speed-control">
+            <label for="speed-slider">Time Speed: <span id="speed-value">1.0x</span></label>
+            <input type="range" id="speed-slider" min="0" max="1000" step="1" value="281">
+            <label style="margin-top: 8px; cursor: pointer; font-size: 14px;">
+                <input type="checkbox" id="toggle-real-scale"> 真实比例模式
+            </label>
+            <button id="pause-btn">⏸️ Pause</button>
+            <button id="reset-btn">🔄 回到今天</button>
+        </div>
+    </div>
+    <div id="tooltip"></div>
+    <div id="loading">正在加载宇宙...</div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

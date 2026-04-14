@@ -1,0 +1,119 @@
+body { margin: 0; overflow: hidden; background-color: #000; }
+#info { display: none; }
+#help-btn {
+    position: absolute; bottom: 20px; right: 20px;
+    color: rgba(255, 255, 255, 0.8); font-family: sans-serif; font-size: 20px;
+    cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%; width: 30px; height: 30px;
+    text-align: center; line-height: 28px;
+    background: rgba(0, 0, 0, 0.5); z-index: 10; transition: all 0.2s;
+}
+#help-btn:hover { background: rgba(255, 255, 255, 0.2); color: white; border-color: white; }
+#help-panel {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 400px; background: rgba(0, 0, 0, 0.85); border: 1px solid #555;
+    border-radius: 10px; padding: 25px; color: white; font-family: sans-serif;
+    display: none; backdrop-filter: blur(5px);
+    box-shadow: 0 0 20px rgba(0,0,0,0.8); z-index: 100;
+}
+#help-panel h2 { margin-top: 0; color: #4FD0E7; border-bottom: 1px solid #444; padding-bottom: 10px; text-align: center; }
+#help-panel ul { line-height: 1.8; font-size: 15px; color: #ddd; padding-left: 20px; }
+#help-panel .close-hint { margin-top: 20px; font-size: 13px; color: #888; text-align: center; cursor: pointer; padding: 5px; }
+#help-panel .close-hint:hover { color: white; }
+#planet-info-panel {
+    position: absolute; top: 50%; left: 20px; transform: translateY(-50%);
+    width: 320px; max-height: 80vh; overflow-y: auto;
+    background: rgba(0, 0, 0, 0.85); border: 1px solid #555;
+    border-radius: 10px; padding: 20px; color: white; font-family: sans-serif;
+    display: none; backdrop-filter: blur(5px);
+    box-shadow: 0 0 20px rgba(0,0,0,0.8); z-index: 30;
+    scrollbar-width: thin; scrollbar-color: #555 #222;
+}
+#planet-info-panel::-webkit-scrollbar { width: 6px; }
+#planet-info-panel::-webkit-scrollbar-track { background: #222; border-radius: 3px; }
+#planet-info-panel::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+#planet-info-panel::-webkit-scrollbar-thumb:hover { background: #777; }
+#planet-info-panel .close-btn {
+    position: absolute; top: 15px; right: 15px; width: 30px; height: 30px;
+    background: rgba(255, 255, 255, 0.1); border: 1px solid #555;
+    border-radius: 50%; color: white; text-align: center; line-height: 28px;
+    cursor: pointer; font-size: 20px; z-index: 40; transition: background 0.2s;
+}
+#planet-info-panel .close-btn:hover { background: rgba(255, 255, 255, 0.3); }
+#planet-info-panel h2 { margin-top: 0; color: #FFD700; border-bottom: 1px solid #444; padding-bottom: 10px; }
+#planet-preview-container {
+    width: 100%; height: 200px; border-radius: 5px; margin-bottom: 10px;
+    background: #000; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+}
+#planet-photo-display { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
+#planet-info-panel p { line-height: 1.5; font-size: 14px; color: #ddd; }
+#planet-info-panel .close-hint { margin-top: 15px; font-size: 12px; color: #888; text-align: center; }
+#planet-info-panel .nav-buttons { display: flex; justify-content: space-between; margin-top: 15px; }
+#planet-info-panel button.nav-btn {
+    background: rgba(255, 255, 255, 0.1); border: 1px solid #555; color: white;
+    padding: 5px 10px; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background 0.2s;
+}
+#planet-info-panel button.nav-btn:hover { background: rgba(255, 255, 255, 0.3); }
+#planet-info-panel table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+#planet-info-panel td { padding: 5px 0; border-bottom: 1px solid #444; }
+#planet-info-panel td:first-child { color: #aaa; width: 40%; }
+#planet-info-panel td:last-child { color: #fff; text-align: right; }
+#controls-ui {
+    position: absolute; top: 60px; right: 20px; color: white; font-family: sans-serif;
+    text-align: right; z-index: 10; background: rgba(0, 0, 0, 0.2); padding: 10px; border-radius: 8px;
+}
+#speed-control { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+#pause-btn {
+    background: rgba(255, 255, 255, 0.2); border: 1px solid white; color: white;
+    padding: 5px 15px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 5px; transition: background 0.3s;
+}
+#pause-btn:hover { background: rgba(255, 255, 255, 0.4); }
+#reset-btn {
+    background: rgba(255, 255, 255, 0.15); border: 1px solid #aaa; color: #ddd;
+    padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 8px; transition: all 0.3s;
+}
+#reset-btn:hover { background: rgba(255, 255, 255, 0.3); color: white; border-color: white; }
+input[type="range"] { cursor: pointer; }
+#tooltip {
+    position: absolute; background: rgba(0, 0, 0, 0.8); color: white;
+    padding: 5px 10px; border-radius: 4px; font-family: sans-serif; font-size: 14px;
+    pointer-events: none; display: none; border: 1px solid #444;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -150%); z-index: 20; white-space: nowrap;
+}
+#date-picker-modal {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9); border: 1px solid #555; border-radius: 10px;
+    padding: 20px; color: white; font-family: sans-serif; display: none; z-index: 200;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8); text-align: center; backdrop-filter: blur(10px);
+}
+#date-picker-modal h3 { margin-top: 0; color: #4FD0E7; border-bottom: 1px solid #444; padding-bottom: 10px; }
+.date-inputs { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+.date-input-group { display: flex; flex-direction: column; align-items: center; }
+.date-input-group label { font-size: 12px; color: #aaa; margin-bottom: 5px; }
+.date-inputs input {
+    background: rgba(255, 255, 255, 0.1); border: 1px solid #555; color: white;
+    padding: 8px; border-radius: 5px; font-size: 18px; width: 60px; text-align: center; outline: none;
+}
+.date-inputs input:focus { border-color: #4FD0E7; background: rgba(255, 255, 255, 0.2); }
+.date-inputs input::-webkit-outer-spin-button,
+.date-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.date-inputs input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+.modal-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+.modal-btn { padding: 8px 20px; border-radius: 5px; cursor: pointer; font-size: 14px; border: none; transition: background 0.2s; }
+.btn-confirm { background: #4FD0E7; color: #000; font-weight: bold; }
+.btn-confirm:hover { background: #79e0f2; }
+.btn-cancel { background: rgba(255, 255, 255, 0.2); color: white; }
+.btn-cancel:hover { background: rgba(255, 255, 255, 0.3); }
+#time-display {
+    position: absolute; top: 20px; right: 20px; color: #fff;
+    font-family: 'Courier New', Courier, monospace; font-size: 16px;
+    pointer-events: auto; text-align: right; text-shadow: 0 0 5px #000;
+    cursor: pointer; padding: 5px; border-radius: 5px; transition: background 0.2s; z-index: 50;
+}
+#time-display:hover { background: rgba(255, 255, 255, 0.1); }
+#loading {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: white; font-family: sans-serif; font-size: 20px; pointer-events: none;
+}
