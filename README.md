@@ -16,15 +16,19 @@
 
 本项目使用 ES Modules，需要通过 HTTP 服务器访问（不支持直接双击 HTML 打开）。
 
-**方式一：双击启动脚本**
+**推荐方式：双击启动脚本**
 
 ```
 双击 start.bat
 ```
 
-会自动启动本地 Python 服务器并在浏览器打开项目。
+脚本会自动启动本地 Python 服务器，并在浏览器打开项目页面：
 
-**方式二：手动启动服务器**
+```
+http://localhost:8000/solar_system.html
+```
+
+**手动方式：启动本地服务器**
 
 ```bash
 # Python
@@ -34,7 +38,13 @@ python -m http.server 8000
 npx serve
 ```
 
-然后访问 http://localhost:8000/solar_system.html
+然后在浏览器访问：
+
+```
+http://localhost:8000/solar_system.html
+```
+
+注意：不要直接双击 `solar_system.html`，否则浏览器可能会因为模块加载限制导致页面无法正常运行。
 
 ## 项目结构
 

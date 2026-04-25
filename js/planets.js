@@ -238,7 +238,8 @@ function addAtmosphere(parent, radius, color, coef, power, opacity) {
         uniforms: {
             glowColor: { value: new THREE.Color(color) },
             coef: { value: coef },
-            power: { value: power }
+            power: { value: power },
+            opacity: { value: opacity }
         },
         side: THREE.BackSide, blending: THREE.AdditiveBlending,
         transparent: true, opacity
